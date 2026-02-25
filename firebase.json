@@ -1,7 +1,7 @@
 {
   "hosting": {
     "site": "buildbyalistar-tools",
-    "public": "ai-toolsphere-main/dist",
+    "public": "dist",
     "ignore": [
       "firebase.json",
       "**/.*",
