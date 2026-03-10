@@ -154,13 +154,20 @@ export async function runTool({ tool, values, userId }) {
       break;
   }
 
-  trackToolRun({
-    userId,
-    toolId: tool.id,
-    provider: result?.meta?.provider || tool.provider,
-  }).catch((error) => {
-    console.error("Failed to track tool run", error);
-  });
+  try {
+    await trackToolRun({
+      userId,
+      toolId: tool.id,
+      provider: result?.meta?.provider || tool.provider,
+    });
+  } catch (error) {
+    console.error("Failed to track tool run", {
+      toolId: tool.id,
+      userIdPresent: Boolean(userId),
+      provider: result?.meta?.provider || tool.provider,
+      error,
+    });
+  }
 
   return result;
 }
