@@ -18,4 +18,11 @@ export const auth = getAuth(app);
 export const db = getFirestore(app);
 export const googleProvider = new GoogleAuthProvider();
 
+if (import.meta.env.DEV) {
+  console.info("[firebase] Initialized", {
+    appName: app.name,
+    projectId: firebaseConfig.projectId,
+  });
+}
+
 export default app;
