@@ -111,7 +111,7 @@ export default function DynamicToolRenderer({ tool }) {
       setCopied(false);
       setResult(null);
 
-      const toolResult = await runTool({ tool, values, userId: user?.uid || auth.currentUser?.uid });
+      const toolResult = await runTool({ tool, values, user: user || auth.currentUser || null });
       setResult(toolResult);
     } catch (err) {
       setError(err.message || "Error");
