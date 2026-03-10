@@ -350,6 +350,7 @@ const tools = [
     fields: [
       { id: "files", type: "file", label: "Upload PDFs", accept: ".pdf", multiple: true, required: true },
     ],
+    actionLabel: "Merge PDFs",
     action: { type: "provider-adapter", operation: "merge-pdf" },
     promptTemplate: "",
     outputType: "file",
@@ -375,6 +376,7 @@ const tools = [
         options: ["low", "medium", "high"],
       },
     ],
+    actionLabel: "Compress PDF",
     action: { type: "provider-adapter", operation: "compress-pdf" },
     promptTemplate: "",
     outputType: "file",

@@ -19,10 +19,12 @@ const badgeStyles = {
 };
 
 const ToolCard = ({ tool }) => {
+  const isOpenable = tool.enabled && !tool.comingSoon;
+
   const cardContent = (
     <div
       className={`group border rounded-2xl p-6 transition ${
-        tool.enabled ? "bg-zinc-900 border-zinc-800 hover:border-zinc-600" : "bg-zinc-900/40 border-zinc-800 opacity-70"
+        isOpenable ? "bg-zinc-900 border-zinc-800 hover:border-zinc-600" : "bg-zinc-900/40 border-zinc-800 opacity-70"
       }`}
     >
       <div className="flex justify-between items-start gap-4 mb-4">
@@ -34,11 +36,11 @@ const ToolCard = ({ tool }) => {
 
       <p className="text-zinc-400 mb-4 min-h-12">{tool.description}</p>
       <p className="text-xs text-zinc-500 mb-6">Provider: {tool.provider}</p>
-      <span className="text-white font-semibold">{tool.enabled ? "Open tool →" : "Unavailable"}</span>
+      <span className="text-white font-semibold">{isOpenable ? "Open tool →" : tool.comingSoon ? "Preview only" : "Unavailable"}</span>
     </div>
   );
 
-  if (!tool.enabled) {
+  if (!isOpenable) {
     return cardContent;
   }
 
