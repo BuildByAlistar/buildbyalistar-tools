@@ -14,8 +14,9 @@ export function AuthProvider({ children }) {
       setLoading(false);
 
       if (u) {
+        console.info("[auth] User signed in", { uid: u.uid });
         ensureUserUsageProfile(u).catch((error) => {
-          console.error("Failed to initialize usage profile", error);
+          console.error("[auth] Failed to initialize usage profile", { uid: u.uid, error });
         });
       }
     });
