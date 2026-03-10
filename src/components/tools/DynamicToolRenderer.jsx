@@ -51,9 +51,6 @@ function FieldInput({ field, value, onChange }) {
           }}
           className="w-full text-sm text-zinc-300 file:mr-4 file:rounded-lg file:border-0 file:bg-purple-700 file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-purple-600"
         />
-        <p className="text-xs text-zinc-500 mt-3">
-          Provider-ready upload UI. Processing starts once {field.label.toLowerCase()} integration is enabled.
-        </p>
       </div>
     );
   }
@@ -73,14 +70,14 @@ export default function DynamicToolRenderer({ tool }) {
   const initialValues = useMemo(
     () =>
       tool.fields.reduce((acc, field) => {
-        acc[field.id] = field.type === "file" ? null : "";
+        acc[field.id] = field.type === "file" ? (field.multiple ? [] : null) : "";
         return acc;
       }, {}),
     [tool.fields],
   );
 
   const [values, setValues] = useState(initialValues);
-  const [output, setOutput] = useState("");
+  const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [copied, setCopied] = useState(false);
@@ -107,10 +104,10 @@ export default function DynamicToolRenderer({ tool }) {
       setLoading(true);
       setError("");
       setCopied(false);
-      setOutput("");
+      setResult(null);
 
-      const result = await runTool({ tool, values });
-      setOutput(result.output);
+      const toolResult = await runTool({ tool, values });
+      setResult(toolResult);
     } catch (err) {
       setError(err.message || "Error");
     } finally {
@@ -119,12 +116,36 @@ export default function DynamicToolRenderer({ tool }) {
   };
 
   const copyResult = async () => {
-    if (!output) {
+    const outputText = result?.type === "text" ? result.output : "";
+    if (!outputText) {
       return;
     }
 
-    await navigator.clipboard.writeText(output);
+    await navigator.clipboard.writeText(outputText);
     setCopied(true);
+  };
+
+  const downloadFile = () => {
+    if (result?.type !== "file") {
+      return;
+    }
+
+    const { fileBase64, mimeType, fileName } = result.output;
+    const bytes = atob(fileBase64);
+    const buffer = new Uint8Array(bytes.length);
+    for (let i = 0; i < bytes.length; i += 1) {
+      buffer[i] = bytes.charCodeAt(i);
+    }
+
+    const blob = new Blob([buffer], { type: mimeType || "application/octet-stream" });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = fileName || "result.pdf";
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    URL.revokeObjectURL(url);
   };
 
   return (
@@ -157,7 +178,7 @@ export default function DynamicToolRenderer({ tool }) {
             >
               {loading ? "Running..." : tool.comingSoon ? "Run Preview" : "Generate"}
             </button>
-            {loading && <span className="text-sm text-zinc-400">Please wait...</span>}
+            {loading && <span className="text-sm text-zinc-400">Processing your file. Please wait...</span>}
           </div>
 
           {error ? (
@@ -167,7 +188,7 @@ export default function DynamicToolRenderer({ tool }) {
           ) : null}
         </div>
 
-        {output ? (
+        {result?.type === "text" && result.output ? (
           <div className="mt-8 bg-zinc-900 border border-zinc-800 rounded-2xl p-6">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-semibold">Result</h2>
@@ -179,7 +200,21 @@ export default function DynamicToolRenderer({ tool }) {
                 {copied ? "Copied" : "Copy result"}
               </button>
             </div>
-            <div className="whitespace-pre-wrap text-zinc-100 leading-7">{output}</div>
+            <div className="whitespace-pre-wrap text-zinc-100 leading-7">{result.output}</div>
+          </div>
+        ) : null}
+
+        {result?.type === "file" ? (
+          <div className="mt-8 bg-zinc-900 border border-zinc-800 rounded-2xl p-6">
+            <h2 className="text-xl font-semibold mb-3">Your file is ready</h2>
+            <p className="text-zinc-400 mb-4">Download your processed PDF safely to your device.</p>
+            <button
+              type="button"
+              onClick={downloadFile}
+              className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 px-5 rounded-xl transition"
+            >
+              Download {result.output.fileName}
+            </button>
           </div>
         ) : null}
       </div>
