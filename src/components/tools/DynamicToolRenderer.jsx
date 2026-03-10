@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from "react";
 import { runTool } from "../../lib/toolRunner";
 import { useAuth } from "../../context/useAuth";
+import { auth } from "../../firebase";
 
 const badgeStyles = {
   FREE: "text-green-500 bg-green-900",
@@ -110,7 +111,7 @@ export default function DynamicToolRenderer({ tool }) {
       setCopied(false);
       setResult(null);
 
-      const toolResult = await runTool({ tool, values, userId: user?.uid });
+      const toolResult = await runTool({ tool, values, userId: user?.uid || auth.currentUser?.uid });
       setResult(toolResult);
     } catch (err) {
       setError(err.message || "Error");

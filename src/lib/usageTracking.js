@@ -3,33 +3,47 @@ import { db } from "../firebase";
 
 export async function ensureUserUsageProfile(user) {
   if (!user?.uid) {
-    return;
+    console.warn("Skipping usage profile initialization: missing user id");
+    return null;
   }
 
-  const userRef = doc(db, "users", user.uid);
-  const userSnap = await getDoc(userRef);
+  try {
+    const userRef = doc(db, "users", user.uid);
+    const userSnap = await getDoc(userRef);
 
-  if (userSnap.exists()) {
-    return;
+    if (userSnap.exists()) {
+      return userRef;
+    }
+
+    await setDoc(userRef, {
+      email: user.email || "",
+      plan: "free",
+      credits: 10,
+      createdAt: serverTimestamp(),
+    });
+
+    return userRef;
+  } catch (error) {
+    console.error("Failed to ensure usage profile", error);
+    throw error;
   }
-
-  await setDoc(userRef, {
-    email: user.email || "",
-    plan: "free",
-    credits: 10,
-    createdAt: serverTimestamp(),
-  });
 }
 
 export async function trackToolRun({ userId, toolId, provider }) {
   if (!userId || !toolId || !provider) {
-    return;
+    console.warn("Skipping tool run tracking due to missing fields", { userId: Boolean(userId), toolId: Boolean(toolId), provider: Boolean(provider) });
+    return null;
   }
 
-  await addDoc(collection(db, "toolRuns"), {
-    userId,
-    toolId,
-    provider,
-    timestamp: serverTimestamp(),
-  });
+  try {
+    return await addDoc(collection(db, "toolRuns"), {
+      userId,
+      toolId,
+      provider,
+      timestamp: serverTimestamp(),
+    });
+  } catch (error) {
+    console.error("Failed to write tool run tracking", error);
+    throw error;
+  }
 }
