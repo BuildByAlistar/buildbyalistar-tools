@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import tools from "../data/tools";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../context/useAuth";
 
 const categoryOrder = [
   "AI Writing Tools",
