@@ -1,173 +1,101 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import tools from "../data/tools";
 import { useAuth } from "../context/AuthContext";
 
-const ToolCard = ({ title, status, description, pro, comingSoon, link }) => {
+const categoryOrder = [
+  "AI Writing Tools",
+  "PDF Tools",
+  "AI Image Tools",
+  "Marketing Tools",
+  "Business Tools",
+];
 
-  const getStatusBadge = () => {
+const badgeStyles = {
+  FREE: "text-green-500 bg-green-900",
+  PRO: "text-purple-400 bg-purple-950",
+  LIVE: "text-emerald-500 bg-emerald-900",
+  "COMING SOON": "text-gray-400 bg-gray-800",
+};
 
-    if (comingSoon) {
-      return <div className="text-xs font-bold text-gray-500 bg-gray-700 px-2 py-1 rounded-full">COMING SOON</div>;
-    }
-
-    if (status === "FREE") {
-      return <div className="text-xs font-bold text-green-500 bg-green-900 px-2 py-1 rounded-full">FREE</div>;
-    }
-
-    if (status === "PRO") {
-      return <div className="text-xs font-bold text-purple-500 bg-purple-900 px-2 py-1 rounded-full">PRO</div>;
-    }
-
-    if (status === "LIVE") {
-      return <div className="text-xs font-bold text-emerald-500 bg-emerald-900 px-2 py-1 rounded-full">LIVE</div>;
-    }
-
-    return null;
-  };
-
+const ToolCard = ({ tool }) => {
   const cardContent = (
-
-    <div className="group bg-zinc-900 border border-zinc-800 rounded-2xl p-6">
-
-      <div className="flex justify-between mb-4">
-        <h3 className="text-lg font-bold">{title}</h3>
-        {getStatusBadge()}
+    <div
+      className={`group border rounded-2xl p-6 transition ${
+        tool.enabled ? "bg-zinc-900 border-zinc-800 hover:border-zinc-600" : "bg-zinc-900/40 border-zinc-800 opacity-70"
+      }`}
+    >
+      <div className="flex justify-between items-start gap-4 mb-4">
+        <h3 className="text-lg font-bold leading-tight">{tool.name}</h3>
+        <div className={`text-xs font-bold px-2 py-1 rounded-full ${badgeStyles[tool.badge] || "bg-zinc-800 text-zinc-300"}`}>
+          {tool.badge}
+        </div>
       </div>
 
-      <p className="text-zinc-400 mb-6">{description}</p>
-
-      <span className="text-white font-semibold">
-        Open tool →
-      </span>
-
+      <p className="text-zinc-400 mb-4 min-h-12">{tool.description}</p>
+      <p className="text-xs text-zinc-500 mb-6">Provider: {tool.provider}</p>
+      <span className="text-white font-semibold">{tool.enabled ? "Open tool →" : "Unavailable"}</span>
     </div>
-
   );
 
-  if (pro || comingSoon) {
+  if (!tool.enabled) {
     return cardContent;
   }
 
-  return <Link to={link}>{cardContent}</Link>;
-
+  return <Link to={tool.route}>{cardContent}</Link>;
 };
 
 export default function HomePage() {
-
   const { user, logout } = useAuth();
 
+  const toolGroups = tools.reduce((groups, tool) => {
+    if (!groups[tool.category]) {
+      groups[tool.category] = [];
+    }
+
+    groups[tool.category].push(tool);
+    return groups;
+  }, {});
+
   return (
-
     <div className="bg-zinc-950 min-h-screen text-white">
-
       <nav className="border-b border-zinc-800">
-
         <div className="container mx-auto px-6 py-4 flex justify-between">
-
-          <div className="font-bold">
-            ToolSphere
-          </div>
-
+          <div className="font-bold">ToolSphere</div>
           {user ? (
-
-            <button
-              onClick={logout}
-              className="bg-purple-600 px-4 py-2 rounded"
-            >
+            <button onClick={logout} className="bg-purple-600 px-4 py-2 rounded">
               Logout
             </button>
-
           ) : (
-
-            <Link
-              to="/login"
-              className="bg-purple-600 px-4 py-2 rounded"
-            >
+            <Link to="/login" className="bg-purple-600 px-4 py-2 rounded">
               Login
             </Link>
-
           )}
-
         </div>
-
       </nav>
 
       <main className="container mx-auto px-6 py-16">
+        <h1 className="text-5xl font-bold mb-4 text-center">AI ToolSphere</h1>
+        <p className="text-zinc-400 text-center mb-16">Config-powered AI tools platform. Add tools from data, not hardcoded pages.</p>
 
-        <h1 className="text-5xl font-bold mb-16 text-center">
-          AI ToolSphere
-        </h1>
+        {categoryOrder.map((category) => {
+          const categoryTools = toolGroups[category] || [];
+          if (!categoryTools.length) {
+            return null;
+          }
 
-        <section className="mb-16">
-
-          <h2 className="text-2xl font-bold mb-8">
-            AI Writing Tools
-          </h2>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-
-            <ToolCard
-              title="Bio Writer"
-              status="FREE"
-              description="Craft a professional bio instantly."
-              link="/tools/bio-writer"
-            />
-
-            <ToolCard
-              title="Headline Generator"
-              status="FREE"
-              description="Generate scroll stopping headlines."
-              comingSoon
-            />
-
-            <ToolCard
-              title="Content Repurposer"
-              status="PRO"
-              description="Turn one content into many formats."
-              pro
-            />
-
-          </div>
-
-        </section>
-
-        <section>
-
-          <h2 className="text-2xl font-bold mb-8">
-            PDF Tools
-          </h2>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-
-            <ToolCard
-              title="Merge PDF"
-              status="LIVE"
-              description="Combine multiple PDFs."
-              comingSoon
-            />
-
-            <ToolCard
-              title="Compress PDF"
-              status="LIVE"
-              description="Reduce PDF file size."
-              comingSoon
-            />
-
-            <ToolCard
-              title="OCR PDF"
-              status="LIVE"
-              description="Extract text from scanned PDF."
-              comingSoon
-            />
-
-          </div>
-
-        </section>
-
+          return (
+            <section key={category} className="mb-14">
+              <h2 className="text-2xl font-bold mb-7">{category}</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                {categoryTools.map((tool) => (
+                  <ToolCard key={tool.id} tool={tool} />
+                ))}
+              </div>
+            </section>
+          );
+        })}
       </main>
-
     </div>
-
   );
-
 }
