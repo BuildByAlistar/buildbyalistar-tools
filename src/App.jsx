@@ -7,7 +7,7 @@ import BioWriter from "./page/Tools/BioWriter";
 import ToolRunnerPage from "./page/ToolRunnerPage";
 
 function ToolRoute({ tool }) {
-  if (!tool.enabled) {
+  if (!tool.enabled || tool.comingSoon) {
     return <Navigate to="/" replace />;
   }
 

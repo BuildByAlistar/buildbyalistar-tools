@@ -82,6 +82,8 @@ export default function DynamicToolRenderer({ tool }) {
   const [error, setError] = useState("");
   const [copied, setCopied] = useState(false);
 
+  const actionLabel = tool.actionLabel || (tool.comingSoon ? "Run Preview" : "Run Tool");
+
   const isSubmitDisabled = loading || tool.fields.some((field) => {
     if (!field.required) {
       return false;
@@ -176,7 +178,7 @@ export default function DynamicToolRenderer({ tool }) {
               disabled={isSubmitDisabled}
               className="bg-purple-600 hover:bg-purple-700 disabled:bg-zinc-700 disabled:text-zinc-400 disabled:cursor-not-allowed text-white font-semibold py-2.5 px-5 rounded-xl transition"
             >
-              {loading ? "Running..." : tool.comingSoon ? "Run Preview" : "Generate"}
+              {loading ? "Running..." : actionLabel}
             </button>
             {loading && <span className="text-sm text-zinc-400">Processing your file. Please wait...</span>}
           </div>
