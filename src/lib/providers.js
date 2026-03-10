@@ -20,8 +20,8 @@ export const PROVIDERS = {
   adobe: {
     id: "adobe",
     label: "Adobe",
-    status: "planned",
-    supportsLiveExecution: false,
+    status: "partial-live",
+    supportsLiveExecution: true,
   },
 };
 
@@ -32,6 +32,14 @@ export const ENDPOINT_TYPES = {
 };
 
 export const GEMINI_FUNCTION_URL = "https://generatetext-mzlimmikka-uc.a.run.app";
+
+const ADOBE_FUNCTIONS_BASE_URL =
+  import.meta.env.VITE_ADOBE_FUNCTIONS_BASE_URL || "https://us-central1-ai-toolsphere.cloudfunctions.net";
+
+export const ADOBE_FUNCTION_URLS = {
+  "merge-pdf": `${ADOBE_FUNCTIONS_BASE_URL}/mergePdf`,
+  "compress-pdf": `${ADOBE_FUNCTIONS_BASE_URL}/compressPdf`,
+};
 
 const getProviderLabel = (providerId) => PROVIDERS[providerId]?.label || providerId || "Unknown provider";
 
@@ -47,7 +55,7 @@ const createPlaceholderAdapter = (providerId) => async (tool) => ({
 });
 
 export const providerAdapters = {
-  adobe: createPlaceholderAdapter("adobe"),
+  adobe: null,
   picsart: createPlaceholderAdapter("picsart"),
   openai: createPlaceholderAdapter("openai"),
 };
