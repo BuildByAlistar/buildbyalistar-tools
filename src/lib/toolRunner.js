@@ -113,7 +113,7 @@ const runProviderAdapter = async (tool, values) => {
   };
 };
 
-export async function runTool({ tool, values, userId }) {
+export async function runTool({ tool, values, user }) {
   if (!tool?.enabled) {
     throw new Error(`${tool?.name || "This tool"} is currently disabled.`);
   }
@@ -156,14 +156,14 @@ export async function runTool({ tool, values, userId }) {
 
   try {
     await trackToolRun({
-      userId,
+      user,
       toolId: tool.id,
       provider: result?.meta?.provider || tool.provider,
     });
   } catch (error) {
     console.error("Failed to track tool run", {
       toolId: tool.id,
-      userIdPresent: Boolean(userId),
+      userIdPresent: Boolean(user?.uid),
       provider: result?.meta?.provider || tool.provider,
       error,
     });
