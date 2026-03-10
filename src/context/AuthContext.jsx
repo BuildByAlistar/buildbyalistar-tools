@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { onAuthStateChanged, signInWithPopup, signOut } from "firebase/auth";
 import { auth, googleProvider } from "../firebase";
 import { AuthContext } from "./authContext";
+import { ensureUserUsageProfile } from "../lib/usageTracking";
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
@@ -11,6 +12,12 @@ export function AuthProvider({ children }) {
     const unsub = onAuthStateChanged(auth, (u) => {
       setUser(u || null);
       setLoading(false);
+
+      if (u) {
+        ensureUserUsageProfile(u).catch((error) => {
+          console.error("Failed to initialize usage profile", error);
+        });
+      }
     });
 
     return () => unsub();

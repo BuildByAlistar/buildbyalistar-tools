@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from "react";
 import { runTool } from "../../lib/toolRunner";
+import { useAuth } from "../../context/useAuth";
 
 const badgeStyles = {
   FREE: "text-green-500 bg-green-900",
@@ -67,6 +68,7 @@ function FieldInput({ field, value, onChange }) {
 }
 
 export default function DynamicToolRenderer({ tool }) {
+  const { user } = useAuth();
   const initialValues = useMemo(
     () =>
       tool.fields.reduce((acc, field) => {
@@ -108,7 +110,7 @@ export default function DynamicToolRenderer({ tool }) {
       setCopied(false);
       setResult(null);
 
-      const toolResult = await runTool({ tool, values });
+      const toolResult = await runTool({ tool, values, userId: user?.uid });
       setResult(toolResult);
     } catch (err) {
       setError(err.message || "Error");

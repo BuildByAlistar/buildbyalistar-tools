@@ -1,4 +1,5 @@
 import { ADOBE_FUNCTION_URLS, ENDPOINT_TYPES, GEMINI_FUNCTION_URL, getProvider } from "./providers";
+import { trackToolRun } from "./usageTracking";
 
 export const applyPromptTemplate = (template, values) =>
   template.replace(/{{\s*([\w-]+)\s*}}/g, (_, key) => values[key] || "");
@@ -112,7 +113,7 @@ const runProviderAdapter = async (tool, values) => {
   };
 };
 
-export async function runTool({ tool, values }) {
+export async function runTool({ tool, values, userId }) {
   if (!tool?.enabled) {
     throw new Error(`${tool?.name || "This tool"} is currently disabled.`);
   }
@@ -129,16 +130,20 @@ export async function runTool({ tool, values }) {
     };
   }
 
+  let result;
+
   switch (tool.endpointType) {
     case ENDPOINT_TYPES.GEMINI_FUNCTION:
-      return runGeminiFunction(tool, values);
+      result = await runGeminiFunction(tool, values);
+      break;
 
     case ENDPOINT_TYPES.PROVIDER_ADAPTER:
     case ENDPOINT_TYPES.PROVIDER_PLACEHOLDER:
-      return runProviderAdapter(tool, values);
+      result = await runProviderAdapter(tool, values);
+      break;
 
     default:
-      return {
+      result = {
         type: "text",
         output: `${tool.name} cannot run because endpoint type "${tool.endpointType}" is not supported yet.`,
         meta: {
@@ -146,5 +151,16 @@ export async function runTool({ tool, values }) {
           status: "endpoint-unsupported",
         },
       };
+      break;
   }
+
+  trackToolRun({
+    userId,
+    toolId: tool.id,
+    provider: result?.meta?.provider || tool.provider,
+  }).catch((error) => {
+    console.error("Failed to track tool run", error);
+  });
+
+  return result;
 }
