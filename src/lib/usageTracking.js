@@ -1,4 +1,4 @@
-import { addDoc, collection, doc, getDoc, serverTimestamp, setDoc } from "firebase/firestore";
+import { addDoc, collection, doc, serverTimestamp, setDoc } from "firebase/firestore";
 import { db } from "../firebase";
 
 export async function ensureUserUsageProfile(user) {
@@ -7,32 +7,33 @@ export async function ensureUserUsageProfile(user) {
     return null;
   }
 
+  const userRef = doc(db, "users", user.uid);
+
   try {
-    console.info("[usage-tracking] Ensuring user profile", { uid: user.uid });
-    const userRef = doc(db, "users", user.uid);
-    const userSnap = await getDoc(userRef);
+    await setDoc(
+      userRef,
+      {
+        uid: user.uid,
+        email: user.email || "",
+        displayName: user.displayName || "",
+        plan: "free",
+        credits: 10,
+        createdAt: serverTimestamp(),
+        lastLoginAt: serverTimestamp(),
+      },
+      { merge: true },
+    );
 
-    if (userSnap.exists()) {
-      console.info("[usage-tracking] User profile already exists", { uid: user.uid });
-      return userRef;
-    }
-
-    await setDoc(userRef, {
-      uid: user.uid,
-      email: user.email || "",
-      displayName: user.displayName || "",
-      plan: "free",
-      credits: 10,
-      createdAt: serverTimestamp(),
-      lastLoginAt: serverTimestamp(),
-    });
-
-    console.info("[usage-tracking] Created user profile", { uid: user.uid });
-
+    console.info("[usage-tracking] Upserted user profile", { uid: user.uid });
     return userRef;
   } catch (error) {
-    console.error("[usage-tracking] Failed to ensure usage profile", { uid: user?.uid, error });
-    throw error;
+    console.error("[usage-tracking] Failed to upsert user profile", {
+      uid: user.uid,
+      errorCode: error?.code,
+      errorMessage: error?.message,
+      error,
+    });
+    return null;
   }
 }
 
@@ -48,9 +49,16 @@ export async function trackToolRun({ user, toolId, provider }) {
     return null;
   }
 
-  try {
-    await ensureUserUsageProfile(user);
+  const userProfileRef = await ensureUserUsageProfile(user);
+  if (!userProfileRef) {
+    console.warn("[usage-tracking] User profile write did not complete before tool run tracking", {
+      uid: userId,
+      toolId,
+      provider,
+    });
+  }
 
+  try {
     const toolRunRef = await addDoc(collection(db, "toolRuns"), {
       uid: userId,
       userId,
@@ -73,8 +81,10 @@ export async function trackToolRun({ user, toolId, provider }) {
       uid: userId,
       toolId,
       provider,
+      errorCode: error?.code,
+      errorMessage: error?.message,
       error,
     });
-    throw error;
+    return null;
   }
 }
