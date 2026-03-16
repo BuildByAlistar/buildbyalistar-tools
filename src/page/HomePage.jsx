@@ -21,6 +21,7 @@ const badgeStyles = {
 const ToolCard = ({ tool }) => {
   const isOpenable = tool.enabled && !tool.comingSoon;
 
+const ToolCard = ({ tool }) => {
   const cardContent = (
     <div
       className={`group border rounded-2xl p-6 transition ${
