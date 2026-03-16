@@ -68,7 +68,7 @@ function FieldInput({ field, value, onChange }) {
   );
 }
 
-export default function DynamicToolRenderer({ tool }) {
+export default function DynamicToolRenderer({ tool, onRun }) {
   const { user } = useAuth();
   const initialValues = useMemo(
     () =>
@@ -105,6 +105,9 @@ export default function DynamicToolRenderer({ tool }) {
   };
 
   const handleGenerate = async () => {
+    if (onRun) {
+      await onRun(values);
+    }
     try {
       setLoading(true);
       setError("");
