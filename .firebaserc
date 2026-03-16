@@ -1,5 +1,16 @@
 {
   "projects": {
-    "default": "buildbystar-a109d"
-  }
+    "default": "buildbystar-a109d",
+    "hub": "buildbystar-a109d"
+  },
+  "targets": {
+    "buildbystar-a109d": {
+      "hosting": {
+        "app": [
+          "buildbyalistar-tools"
+        ]
+      }
+    }
+  },
+  "etags": {}
 }
