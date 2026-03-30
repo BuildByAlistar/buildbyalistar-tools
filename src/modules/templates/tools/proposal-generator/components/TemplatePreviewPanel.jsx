@@ -2,34 +2,61 @@ import TemplateMediaRenderer from "./TemplateMediaRenderer";
 import TemplateSectionRenderer from "./TemplateSectionRenderer";
 import { getPrimaryImage, getTemplateVideo } from "../templateModel";
 
-export default function TemplatePreviewPanel({ template }) {
+const previewCanvasBaseClassName = "mx-auto w-full px-3 py-3 sm:px-5 sm:py-5 xl:px-6 xl:py-6";
+
+export default function TemplatePreviewPanel({
+  template,
+  previewCanvasClassName = "max-w-[1360px]",
+}) {
   const primaryImage = getPrimaryImage(template);
   const video = getTemplateVideo(template);
   const enabledSections = template.sections.filter((section) => section.enabled);
 
   return (
-    <section className="premium-panel p-0">
-      <div className="mx-auto w-full max-w-[1200px] px-4 py-4 sm:px-6 sm:py-6 lg:px-8">
-        <div className="rounded-[28px] bg-slate-50 p-4 text-slate-900 sm:p-6 lg:p-8">
-          <div className="overflow-hidden rounded-[28px] bg-white shadow-[0_24px_80px_rgba(15,23,42,0.12)]">
-            <div className="bg-gradient-to-br from-slate-900 via-cyan-700 to-sky-400 px-6 py-10 text-white sm:px-10">
-              <p className="text-sm uppercase tracking-[0.24em] text-cyan-50/80">{template.businessType || "Template"}</p>
-              <h2 className="mt-3 text-4xl font-bold tracking-tight sm:text-5xl">{template.title || "Untitled Template"}</h2>
-              <p className="mt-4 max-w-4xl text-base leading-7 text-cyan-50/85">Prepared for {template.clientName || "your client"}.</p>
-              <TemplateMediaRenderer media={primaryImage} />
+    <section className="premium-panel relative overflow-hidden p-0">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(56,189,248,0.12),transparent_20%),radial-gradient(circle_at_bottom_left,rgba(14,165,233,0.08),transparent_28%)]" />
+
+      <div className={`${previewCanvasBaseClassName} ${previewCanvasClassName}`}>
+        <div className="template-preview-shell">
+          <div className="template-preview-window">
+            <div className="template-preview-browser">
+              <div className="flex items-center gap-2">
+                <span className="h-2.5 w-2.5 rounded-full bg-rose-300" />
+                <span className="h-2.5 w-2.5 rounded-full bg-amber-300" />
+                <span className="h-2.5 w-2.5 rounded-full bg-emerald-300" />
+              </div>
+              <div className="template-preview-browser-address">
+                LIVE TEMPLATE PREVIEW
+              </div>
             </div>
 
-            <div className="space-y-6 bg-slate-100 px-4 py-6 sm:px-6 sm:py-8">
-              {enabledSections.map((section) => (
-                <TemplateSectionRenderer key={section.id} section={section} />
-              ))}
+            <div className="template-preview-page">
+              <header className="template-preview-hero">
+                <p className="template-preview-hero-kicker">{template.businessType || "Template"}</p>
+                <h2 className="template-preview-hero-title">{template.title || "Untitled Template"}</h2>
+                <p className="template-preview-hero-copy">
+                  Prepared for {template.clientName || "your client"}.
+                </p>
+                <TemplateMediaRenderer media={primaryImage} />
+              </header>
 
-              {video?.url ? (
-                <article className="rounded-[24px] bg-white p-6 shadow-sm">
-                  <h3 className="text-2xl font-semibold text-slate-900">Video</h3>
-                  <TemplateMediaRenderer media={video} variant="video" />
-                </article>
-              ) : null}
+              <main className="template-preview-main">
+                {enabledSections.map((section, index) => (
+                  <TemplateSectionRenderer key={section.id} section={section} isFirst={index === 0} />
+                ))}
+
+                {video?.url ? (
+                  <section className="template-preview-section">
+                    <div className="max-w-4xl">
+                      <h3 className="template-preview-section-title">Walkthrough Video</h3>
+                      <p className="template-preview-section-copy">
+                        Share a richer project story with an embedded walkthrough that feels native to the page.
+                      </p>
+                    </div>
+                    <TemplateMediaRenderer media={video} variant="video" />
+                  </section>
+                ) : null}
+              </main>
             </div>
           </div>
         </div>

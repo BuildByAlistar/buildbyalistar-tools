@@ -1,11 +1,12 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ArrowLeft } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { useAuth } from "../../../../context/useAuth";
 import generateProposalContent from "../../../../lib/aiProposalGenerator";
 import exportProposalToHTML from "../../../../lib/exportProposalToHTML";
 import saveProposalDraft from "../../../../lib/saveProposalDraft";
 import uploadProposalVideo from "../../../../lib/uploadProposalVideo";
+import { loadTemplateRecord, touchTemplateRecord } from "../../../../lib/templateLibrary";
 import TemplateActionBar from "./components/TemplateActionBar";
 import TemplateEditorPanel from "./components/TemplateEditorPanel";
 import TemplatePreviewPanel from "./components/TemplatePreviewPanel";
@@ -26,6 +27,14 @@ const inputClassName =
 
 const textareaClassName = `${inputClassName} min-h-[120px] resize-y`;
 
+const builderLayout = {
+  workspaceGrid:
+    "grid gap-6 xl:grid-cols-[minmax(320px,360px)_minmax(0,1.2fr)] 2xl:grid-cols-[minmax(340px,380px)_minmax(0,1.45fr)]",
+  editorPanel:
+    "premium-panel-strong p-5 sm:p-6 xl:sticky xl:top-24 xl:self-start xl:max-h-[calc(100vh-7rem)] xl:overflow-y-auto",
+  previewCanvas: "max-w-[1360px]",
+};
+
 const createProposalDraftId = () =>
   typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
     ? crypto.randomUUID()
@@ -38,12 +47,47 @@ const buildPersistedTemplatePayload = (template) => ({
 
 export default function ProposalGeneratorPage() {
   const { user } = useAuth();
+  const [searchParams] = useSearchParams();
   const [template, setTemplate] = useState(createInitialTemplateState);
   const [statusMessage, setStatusMessage] = useState("");
   const [isGeneratingAI, setIsGeneratingAI] = useState(false);
   const [isUploadingVideo, setIsUploadingVideo] = useState(false);
   const [videoUploadError, setVideoUploadError] = useState("");
-  const [proposalDraftId] = useState(createProposalDraftId);
+  const [proposalDraftId, setProposalDraftId] = useState(createProposalDraftId);
+  const templateId = searchParams.get("templateId");
+
+  useEffect(() => {
+    if (!templateId || !user) {
+      return;
+    }
+
+    let isMounted = true;
+    setStatusMessage("Loading template...");
+
+    loadTemplateRecord({ recordId: templateId })
+      .then((record) => {
+        if (!isMounted) {
+          return;
+        }
+        if (!record || record.ownerId !== user.uid || record.templateType !== "proposal") {
+          setStatusMessage("");
+          return;
+        }
+        setTemplate(record.data || createInitialTemplateState());
+        setProposalDraftId(record.id);
+        setStatusMessage("Template loaded from library.");
+        touchTemplateRecord(record.id);
+      })
+      .catch(() => {
+        if (isMounted) {
+          setStatusMessage("");
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [templateId, user]);
 
   const updateField = (field) => (event) => {
     const { value } = event.target;
@@ -226,8 +270,8 @@ export default function ProposalGeneratorPage() {
         </aside>
       </section>
 
-      <div className="grid gap-6 xl:grid-cols-[440px_minmax(0,1fr)]">
-        <section className="premium-panel-strong p-6">
+      <div className={builderLayout.workspaceGrid}>
+        <section className={builderLayout.editorPanel}>
           <TemplateEditorPanel
             template={template}
             inputClassName={inputClassName}
@@ -250,7 +294,7 @@ export default function ProposalGeneratorPage() {
           />
         </section>
 
-        <TemplatePreviewPanel template={template} />
+        <TemplatePreviewPanel template={template} previewCanvasClassName={builderLayout.previewCanvas} />
       </div>
     </div>
   );

@@ -15,81 +15,107 @@ export default function TemplateEditorPanel({
     <>
       <div className="mb-6">
         <h2 className="text-2xl font-semibold text-white">Template editor</h2>
-        <p className="mt-2 text-sm leading-6 text-slate-400">Shape the content on the left and review the live template output on the right.</p>
+        <p className="mt-2 max-w-sm text-sm leading-6 text-slate-400">
+          Shape the template content here while the wider live canvas updates beside it.
+        </p>
       </div>
 
-      <div className="space-y-4">
-        <label className="block">
-          <span className="mb-2 block text-sm font-medium text-slate-200">Template Type</span>
-          <input className={inputClassName} value={template.templateType} readOnly />
-        </label>
+      <div className="space-y-5">
+        <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-5">
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-1">
+            <label className="block">
+              <span className="mb-2 block text-sm font-medium text-slate-200">Template Type</span>
+              <input className={inputClassName} value={template.templateType} readOnly />
+            </label>
 
-        <label className="block">
-          <span className="mb-2 block text-sm font-medium text-slate-200">Title</span>
-          <input className={inputClassName} value={template.title} onChange={onFieldChange("title")} />
-        </label>
+            <label className="block sm:col-span-2 xl:col-span-1">
+              <span className="mb-2 block text-sm font-medium text-slate-200">Title</span>
+              <input className={inputClassName} value={template.title} onChange={onFieldChange("title")} />
+            </label>
 
-        <label className="block">
-          <span className="mb-2 block text-sm font-medium text-slate-200">Business Type</span>
-          <input className={inputClassName} value={template.businessType} onChange={onFieldChange("businessType")} />
-        </label>
+            <label className="block">
+              <span className="mb-2 block text-sm font-medium text-slate-200">Business Type</span>
+              <input className={inputClassName} value={template.businessType} onChange={onFieldChange("businessType")} />
+            </label>
 
-        <label className="block">
-          <span className="mb-2 block text-sm font-medium text-slate-200">Client Name</span>
-          <input className={inputClassName} value={template.clientName} onChange={onFieldChange("clientName")} />
-        </label>
+            <label className="block">
+              <span className="mb-2 block text-sm font-medium text-slate-200">Client Name</span>
+              <input className={inputClassName} value={template.clientName} onChange={onFieldChange("clientName")} />
+            </label>
+          </div>
+        </div>
 
-        <label className="block">
-          <span className="mb-2 block text-sm font-medium text-slate-200">Summary</span>
-          <textarea className={textareaClassName} value={template.summary} onChange={onSectionChange("summary")} />
-        </label>
+        <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-5">
+          <div className="space-y-4">
+            <label className="block">
+              <span className="mb-2 block text-sm font-medium text-slate-200">Summary</span>
+              <textarea className={textareaClassName} value={template.summary} onChange={onSectionChange("summary")} />
+            </label>
 
-        <label className="block">
-          <span className="mb-2 block text-sm font-medium text-slate-200">Problem</span>
-          <textarea className={textareaClassName} value={getSectionContent(template, "problem")} onChange={onSectionChange("problem")} />
-        </label>
+            <label className="block">
+              <span className="mb-2 block text-sm font-medium text-slate-200">Problem</span>
+              <textarea
+                className={textareaClassName}
+                value={getSectionContent(template, "problem")}
+                onChange={onSectionChange("problem")}
+              />
+            </label>
 
-        <label className="block">
-          <span className="mb-2 block text-sm font-medium text-slate-200">Solution</span>
-          <textarea className={textareaClassName} value={getSectionContent(template, "solution")} onChange={onSectionChange("solution")} />
-        </label>
+            <label className="block">
+              <span className="mb-2 block text-sm font-medium text-slate-200">Solution</span>
+              <textarea
+                className={textareaClassName}
+                value={getSectionContent(template, "solution")}
+                onChange={onSectionChange("solution")}
+              />
+            </label>
 
-        <label className="block">
-          <span className="mb-2 block text-sm font-medium text-slate-200">Features</span>
-          <textarea className={textareaClassName} value={template.features} onChange={onSectionChange("features")} />
-        </label>
+            <label className="block">
+              <span className="mb-2 block text-sm font-medium text-slate-200">Features</span>
+              <textarea className={textareaClassName} value={template.features} onChange={onSectionChange("features")} />
+            </label>
 
-        <label className="block">
-          <span className="mb-2 block text-sm font-medium text-slate-200">Pricing</span>
-          <textarea className={textareaClassName} value={template.pricing} onChange={onSectionChange("pricing")} />
-        </label>
+            <label className="block">
+              <span className="mb-2 block text-sm font-medium text-slate-200">Pricing</span>
+              <textarea className={textareaClassName} value={template.pricing} onChange={onSectionChange("pricing")} />
+            </label>
 
-        <label className="block">
-          <span className="mb-2 block text-sm font-medium text-slate-200">CTA</span>
-          <textarea className={`${inputClassName} min-h-[96px] resize-y`} value={template.cta} onChange={onSectionChange("cta")} />
-        </label>
+            <label className="block">
+              <span className="mb-2 block text-sm font-medium text-slate-200">CTA</span>
+              <textarea
+                className={`${inputClassName} min-h-[96px] resize-y`}
+                value={template.cta}
+                onChange={onSectionChange("cta")}
+              />
+            </label>
+          </div>
+        </div>
 
-        <label className="block">
-          <span className="mb-2 block text-sm font-medium text-slate-200">Proposal Demo Video (optional)</span>
-          <input
-            type="file"
-            accept="video/*"
-            className="block w-full rounded-2xl border border-dashed border-slate-700 bg-slate-950/70 px-4 py-3 text-sm text-slate-300 file:mr-4 file:rounded-full file:border-0 file:bg-cyan-500 file:px-4 file:py-2 file:font-semibold file:text-slate-950 hover:file:bg-cyan-400"
-            onChange={onVideoUpload}
-            disabled={isUploadingVideo}
-          />
-          {template.video?.name ? <p className="mt-2 text-xs text-slate-400">Uploaded: {template.video.name}</p> : null}
-        </label>
+        <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-5">
+          <div className="space-y-4">
+            <label className="block">
+              <span className="mb-2 block text-sm font-medium text-slate-200">Proposal Demo Video (optional)</span>
+              <input
+                type="file"
+                accept="video/*"
+                className="block w-full rounded-2xl border border-dashed border-slate-700 bg-slate-950/70 px-4 py-3 text-sm text-slate-300 file:mr-4 file:rounded-full file:border-0 file:bg-cyan-500 file:px-4 file:py-2 file:font-semibold file:text-slate-950 hover:file:bg-cyan-400"
+                onChange={onVideoUpload}
+                disabled={isUploadingVideo}
+              />
+              {template.video?.name ? <p className="mt-2 text-xs text-slate-400">Uploaded: {template.video.name}</p> : null}
+            </label>
 
-        <label className="block">
-          <span className="mb-2 block text-sm font-medium text-slate-200">Image Upload (optional)</span>
-          <input
-            type="file"
-            accept="image/*"
-            className="block w-full rounded-2xl border border-dashed border-slate-700 bg-slate-950/70 px-4 py-3 text-sm text-slate-300 file:mr-4 file:rounded-full file:border-0 file:bg-cyan-500 file:px-4 file:py-2 file:font-semibold file:text-slate-950 hover:file:bg-cyan-400"
-            onChange={onImageUpload}
-          />
-        </label>
+            <label className="block">
+              <span className="mb-2 block text-sm font-medium text-slate-200">Image Upload (optional)</span>
+              <input
+                type="file"
+                accept="image/*"
+                className="block w-full rounded-2xl border border-dashed border-slate-700 bg-slate-950/70 px-4 py-3 text-sm text-slate-300 file:mr-4 file:rounded-full file:border-0 file:bg-cyan-500 file:px-4 file:py-2 file:font-semibold file:text-slate-950 hover:file:bg-cyan-400"
+                onChange={onImageUpload}
+              />
+            </label>
+          </div>
+        </div>
       </div>
 
       <div className="mt-8 rounded-3xl border border-white/10 bg-slate-950/60 p-5">

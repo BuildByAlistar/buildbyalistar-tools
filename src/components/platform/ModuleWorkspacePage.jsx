@@ -17,6 +17,7 @@ export default function ModuleWorkspacePage({ categoryId }) {
   const secondaryTools = category?.tools.slice(1) || [];
   const Icon = iconMap[category?.id] || LayoutTemplate;
   const theme = getModuleTheme(categoryId);
+  const isTemplates = categoryId === "templates";
 
   if (!category) {
     return null;
@@ -24,7 +25,12 @@ export default function ModuleWorkspacePage({ categoryId }) {
 
   return (
     <div className="space-y-8">
-      <section className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
+      <section
+        className={[
+          "grid xl:grid-cols-[minmax(0,1fr)_340px]",
+          isTemplates ? "gap-8" : "gap-6",
+        ].join(" ")}
+      >
         <div className="premium-panel p-7 sm:p-9">
           <div className={`inline-flex h-13 w-13 items-center justify-center rounded-2xl ${theme.iconWrap}`}>
             <Icon size={24} />
@@ -78,9 +84,14 @@ export default function ModuleWorkspacePage({ categoryId }) {
         </aside>
       </section>
 
-      <section className="grid items-stretch gap-4 xl:grid-cols-[1.15fr_0.85fr]">
+      <section
+        className={[
+          "grid items-stretch xl:grid-cols-[1.15fr_0.85fr]",
+          isTemplates ? "gap-6" : "gap-4",
+        ].join(" ")}
+      >
         {featuredTool ? <ToolCard tool={featuredTool} themeId={category.id} featured /> : null}
-        <div className="grid gap-4">
+        <div className={isTemplates ? "grid gap-6" : "grid gap-4"}>
           {secondaryTools.map((tool) => (
             <ToolCard key={tool.name} tool={tool} themeId={category.id} />
           ))}
