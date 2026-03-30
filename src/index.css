@@ -145,6 +145,10 @@ a {
     @apply mt-6 max-w-4xl text-base leading-8 text-cyan-50 sm:text-[1.08rem] xl:max-w-[70ch];
   }
 
+  .template-preview-hero-meta {
+    @apply mt-4 text-xs font-semibold uppercase tracking-[0.22em] text-cyan-50/70;
+  }
+
   .template-preview-main {
     @apply px-6 py-10 sm:px-10 sm:py-12 xl:px-14 xl:py-16;
   }
@@ -169,6 +173,79 @@ a {
 
   .template-preview-section-copy {
     @apply mt-5 max-w-[78ch] whitespace-pre-line text-[1.03rem] leading-8 text-slate-600;
+  }
+
+  .instruction-step-list {
+    @apply mt-8 grid gap-6;
+  }
+
+  .instruction-step-card {
+    @apply rounded-[26px] border border-slate-200/70 bg-white px-6 py-6 text-slate-700;
+    box-shadow: 0 18px 50px rgba(15, 23, 42, 0.08);
+  }
+
+  .instruction-step-index {
+    @apply text-xs font-semibold uppercase tracking-[0.2em] text-cyan-600;
+  }
+
+  .instruction-step-title {
+    @apply mt-3 text-2xl font-semibold tracking-[-0.03em] text-slate-900;
+  }
+
+  .instruction-step-desc {
+    @apply mt-3 text-base leading-7 text-slate-600;
+  }
+
+  .instruction-step-media {
+    @apply mt-4 overflow-hidden rounded-[20px] border border-slate-200/70;
+  }
+
+  .instruction-step-media img {
+    @apply h-60 w-full object-cover sm:h-72;
+  }
+
+  .instruction-step-callouts {
+    @apply mt-4 grid gap-3;
+  }
+
+  .instruction-callout {
+    @apply rounded-[18px] border border-slate-200/70 bg-slate-50 px-4 py-4 text-sm text-slate-600;
+  }
+
+  .instruction-callout strong {
+    @apply block text-xs font-semibold uppercase tracking-[0.18em] text-slate-500;
+  }
+
+  .instruction-callout-note strong {
+    @apply text-slate-600;
+  }
+
+  .instruction-callout-tip strong {
+    @apply text-emerald-600;
+  }
+
+  .instruction-callout-warning strong {
+    @apply text-amber-600;
+  }
+
+  .instruction-resource-list {
+    @apply mt-6 grid gap-3;
+  }
+
+  .instruction-resource-link {
+    @apply inline-flex items-center rounded-[16px] border border-slate-200/70 bg-white px-4 py-3 text-sm font-semibold text-cyan-700 transition hover:border-cyan-200 hover:text-cyan-600;
+  }
+
+  .instruction-resource-item {
+    @apply rounded-[16px] border border-slate-200/70 bg-white px-4 py-3 text-sm font-medium text-slate-700;
+  }
+
+  .instruction-gallery {
+    @apply mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-3;
+  }
+
+  .instruction-gallery img {
+    @apply h-40 w-full rounded-[20px] object-cover;
   }
 
   .template-preview-feature-grid {

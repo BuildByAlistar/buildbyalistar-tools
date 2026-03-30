@@ -1,9 +1,12 @@
 const defaultToggles = {
   overview: true,
-  problem: true,
-  solution: true,
-  features: true,
-  pricing: true,
+  requiredItems: true,
+  steps: true,
+  notes: true,
+  warnings: true,
+  resources: true,
+  images: true,
+  video: true,
   cta: true,
 };
 
@@ -22,11 +25,24 @@ const formatTextBlock = (value = "") =>
     .map((paragraph) => `<p>${paragraph.replace(/\n/g, "<br />")}</p>`)
     .join("");
 
+const formatInlineText = (value = "") => escapeHtml(value).replace(/\n/g, "<br />");
+
 const formatBulletItems = (value = "") =>
   value
     .split("\n")
     .map((item) => item.trim())
     .filter(Boolean);
+
+const isLikelyLink = (value = "") =>
+  value.startsWith("http://") || value.startsWith("https://") || value.startsWith("www.");
+
+const formatLink = (value = "") => {
+  if (value.startsWith("http://") || value.startsWith("https://")) {
+    return value;
+  }
+
+  return `https://${value}`;
+};
 
 const getVideoMarkup = (videoUrl = "", videoType = "video/mp4") => {
   if (!videoUrl) {
@@ -38,99 +54,165 @@ const getVideoMarkup = (videoUrl = "", videoType = "video/mp4") => {
   return `<video controls playsinline preload="metadata"><source src="${safeUrl}" type="${safeType}" />Your browser does not support embedded video.</video>`;
 };
 
-export function exportProposalToHTML(proposal = {}) {
+const renderStep = (step, index) => {
+  const stepTitle = escapeHtml(step.title || `Step ${index + 1}`);
+  const stepDescription = formatInlineText(step.description || "Add step details here.");
+  const stepImage = step.image?.url ? escapeHtml(step.image.url) : "";
+  const stepImageAlt = escapeHtml(step.image?.name || step.title || "Step visual");
+  const noteMarkup = step.note
+    ? `<div class="callout note"><strong>Note</strong><p>${formatInlineText(step.note)}</p></div>`
+    : "";
+  const tipMarkup = step.tip
+    ? `<div class="callout tip"><strong>Tip</strong><p>${formatInlineText(step.tip)}</p></div>`
+    : "";
+  const warningMarkup = step.warning
+    ? `<div class="callout warning"><strong>Warning</strong><p>${formatInlineText(step.warning)}</p></div>`
+    : "";
+
+  return `
+    <article class="step-card">
+      <div class="step-index">Step ${step.stepNumber || index + 1}</div>
+      <h3>${stepTitle}</h3>
+      <p>${stepDescription}</p>
+      ${stepImage ? `<img src="${stepImage}" alt="${stepImageAlt}" />` : ""}
+      ${noteMarkup}${tipMarkup}${warningMarkup}
+    </article>
+  `;
+};
+
+export function exportProposalToHTML(instruction = {}) {
   const {
-    projectName = "Untitled Proposal",
-    businessType = "",
-    clientName = "",
+    title = "Instruction Guide",
+    guideType = "Instruction Guide",
+    subtitle = "",
+    audience = "",
     overview = "",
-    problem = "",
-    solution = "",
-    features = "",
-    pricing = "",
+    requiredItems = "",
+    steps = [],
+    notes = "",
+    warnings = "",
+    resources = "",
     cta = "",
     videoUrl = "",
     videoType = "video/mp4",
-    imageDataUrl = "",
+    images = [],
     toggles = defaultToggles,
-  } = proposal;
+  } = instruction;
 
   const mergedToggles = { ...defaultToggles, ...toggles };
-  const safeProjectName = escapeHtml(projectName);
-  const safeBusinessType = escapeHtml(businessType);
-  const safeClientName = escapeHtml(clientName);
+  const safeTitle = escapeHtml(title);
+  const safeGuideType = escapeHtml(guideType);
+  const safeSubtitle = formatInlineText(subtitle);
+  const safeAudience = escapeHtml(audience);
   const safeOverview = formatTextBlock(overview);
-  const safeProblem = formatTextBlock(problem);
-  const safeSolution = formatTextBlock(solution);
+  const safeNotes = formatTextBlock(notes);
+  const safeWarnings = formatTextBlock(warnings);
   const safeCta = formatTextBlock(cta);
-  const featureItems = formatBulletItems(features);
-  const pricingItems = formatBulletItems(pricing);
+  const requiredItemsList = formatBulletItems(requiredItems);
+  const resourceItems = formatBulletItems(resources);
   const videoMarkup = getVideoMarkup(videoUrl, videoType);
-  const safeImageUrl = imageDataUrl ? escapeHtml(imageDataUrl) : "";
+  const imageGallery = Array.isArray(images) ? images : [];
 
   const sections = [
     mergedToggles.overview
       ? `
         <section class="card">
           <h2>Overview</h2>
-          ${safeOverview || "<p>Add a short project overview to introduce the opportunity.</p>"}
+          ${safeOverview || "<p>Add an overview for the instruction guide.</p>"}
         </section>
       `
       : "",
-    mergedToggles.problem
+    mergedToggles.requiredItems
       ? `
         <section class="card">
-          <h2>Problem</h2>
-          ${safeProblem || `<p>${safeClientName || "Your client"} needs a proposal that clearly explains the current challenge, the opportunity, and the business impact of solving it now.</p>`}
-        </section>
-      `
-      : "",
-    mergedToggles.solution
-      ? `
-        <section class="card">
-          <h2>Solution</h2>
-          ${safeSolution || `<p>${safeBusinessType || "This engagement"} will be delivered as a structured solution with clear milestones, polished client communication, and practical execution support.</p>`}
-        </section>
-      `
-      : "",
-    mergedToggles.features
-      ? `
-        <section class="card">
-          <h2>Features</h2>
+          <h2>Required tools & materials</h2>
           ${
-            featureItems.length
-              ? `<ul>${featureItems.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`
-              : "<p>Add feature lines to highlight the scope.</p>"
+            requiredItemsList.length
+              ? `<ul>${requiredItemsList.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`
+              : "<p>Add the tools or materials needed.</p>"
           }
         </section>
       `
       : "",
-    mergedToggles.pricing
+    mergedToggles.steps
       ? `
         <section class="card">
-          <h2>Pricing</h2>
+          <h2>Step-by-step instructions</h2>
+          <div class="step-grid">
+            ${
+              steps.length
+                ? steps.map((step, index) => renderStep(step, index)).join("")
+                : "<p>Add the steps for this guide.</p>"
+            }
+          </div>
+        </section>
+      `
+      : "",
+    mergedToggles.notes
+      ? `
+        <section class="card">
+          <h2>Notes & tips</h2>
+          ${safeNotes || "<p>Add helpful notes or tips.</p>"}
+        </section>
+      `
+      : "",
+    mergedToggles.warnings
+      ? `
+        <section class="card warning-card">
+          <h2>Warnings</h2>
+          ${safeWarnings || "<p>Add warnings or constraints.</p>"}
+        </section>
+      `
+      : "",
+    mergedToggles.resources
+      ? `
+        <section class="card">
+          <h2>Resources</h2>
           ${
-            pricingItems.length
-              ? `<ul>${pricingItems.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`
-              : "<p>Add pricing details, package options, or payment terms.</p>"
+            resourceItems.length
+              ? `<div class="resource-list">${resourceItems
+                  .map((item) =>
+                    isLikelyLink(item)
+                      ? `<a href="${formatLink(item)}">${escapeHtml(item)}</a>`
+                      : `<div class="resource-item">${escapeHtml(item)}</div>`
+                  )
+                  .join("")}</div>`
+              : "<p>Add resource links or references.</p>"
           }
         </section>
       `
       : "",
-    videoMarkup
+    mergedToggles.images
       ? `
         <section class="card">
-          <h2>Video Walkthrough</h2>
-          <div class="video-frame">${videoMarkup}</div>
+          <h2>Screenshots & images</h2>
+          ${
+            imageGallery.length
+              ? `<div class="gallery">${imageGallery
+                  .map(
+                    (image) =>
+                      `<img src="${escapeHtml(image.url)}" alt="${escapeHtml(image.name || "Instruction image")}" />`
+                  )
+                  .join("")}</div>`
+              : "<p>Add screenshots to support the walkthrough.</p>"
+          }
+        </section>
+      `
+      : "",
+    mergedToggles.video
+      ? `
+        <section class="card">
+          <h2>Video walkthrough</h2>
+          ${videoMarkup ? `<div class="video-frame">${videoMarkup}</div>` : "<p>Add a walkthrough video.</p>"}
         </section>
       `
       : "",
     mergedToggles.cta
       ? `
         <section class="card cta-card">
-          <h2>Next Step</h2>
-          ${safeCta || "<p>Review the proposal and confirm the preferred package so we can move into delivery.</p>"}
-          <a class="cta-button" href="mailto:?subject=${encodeURIComponent(projectName)}">Approve Proposal</a>
+          <h2>Next step</h2>
+          ${safeCta || "<p>Confirm the next step for the reader.</p>"}
+          <a class="cta-button" href="mailto:?subject=${encodeURIComponent(title)}">Complete the guide</a>
         </section>
       `
       : "",
@@ -143,18 +225,19 @@ export function exportProposalToHTML(proposal = {}) {
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>${safeProjectName}</title>
+    <title>${safeTitle}</title>
     <style>
       :root {
         color-scheme: light;
         --bg: #f4f7fb;
         --surface: #ffffff;
-        --surface-alt: #eef4ff;
+        --surface-alt: #eef2ff;
         --text: #172033;
         --muted: #5f6b84;
         --border: #dbe4f0;
-        --primary: #2563eb;
-        --primary-dark: #1d4ed8;
+        --primary: #0ea5e9;
+        --primary-dark: #0284c7;
+        --warning: #f97316;
       }
 
       * {
@@ -175,11 +258,11 @@ export function exportProposalToHTML(proposal = {}) {
       }
 
       .hero {
-        background: linear-gradient(135deg, #0f172a 0%, #1d4ed8 100%);
+        background: linear-gradient(135deg, #0f172a 0%, #0ea5e9 100%);
         border-radius: 28px;
         padding: 40px;
         color: #ffffff;
-        box-shadow: 0 20px 50px rgba(37, 99, 235, 0.18);
+        box-shadow: 0 20px 50px rgba(14, 165, 233, 0.18);
       }
 
       .eyebrow {
@@ -197,22 +280,18 @@ export function exportProposalToHTML(proposal = {}) {
       }
 
       .hero-copy {
-        max-width: 700px;
+        max-width: 720px;
         font-size: 18px;
         line-height: 1.7;
         color: rgba(255, 255, 255, 0.88);
       }
 
-      .hero-media {
-        margin-top: 28px;
-      }
-
-      .hero-media img {
-        width: 100%;
-        max-height: 320px;
-        object-fit: cover;
-        border-radius: 20px;
-        border: 1px solid rgba(255, 255, 255, 0.18);
+      .hero-meta {
+        margin-top: 16px;
+        font-size: 14px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, 0.7);
       }
 
       .grid {
@@ -251,6 +330,97 @@ export function exportProposalToHTML(proposal = {}) {
         padding-left: 20px;
         display: grid;
         gap: 12px;
+      }
+
+      .step-grid {
+        display: grid;
+        gap: 16px;
+      }
+
+      .step-card {
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        padding: 20px;
+        background: #f8fafc;
+      }
+
+      .step-index {
+        font-size: 12px;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: var(--primary);
+        font-weight: 700;
+      }
+
+      .step-card h3 {
+        margin: 10px 0 8px;
+        font-size: 20px;
+      }
+
+      .step-card img {
+        width: 100%;
+        margin-top: 14px;
+        border-radius: 16px;
+        border: 1px solid var(--border);
+        max-height: 320px;
+        object-fit: cover;
+      }
+
+      .callout {
+        margin-top: 12px;
+        padding: 12px 14px;
+        border-radius: 14px;
+        background: #ffffff;
+        border: 1px solid var(--border);
+      }
+
+      .callout strong {
+        display: block;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.16em;
+        margin-bottom: 4px;
+      }
+
+      .callout.warning strong {
+        color: var(--warning);
+      }
+
+      .warning-card {
+        border-color: rgba(249, 115, 22, 0.4);
+        background: #fff7ed;
+      }
+
+      .resource-list {
+        display: grid;
+        gap: 10px;
+      }
+
+      .resource-list a,
+      .resource-item {
+        display: inline-flex;
+        align-items: center;
+        padding: 10px 14px;
+        border-radius: 12px;
+        border: 1px solid var(--border);
+        color: var(--primary-dark);
+        text-decoration: none;
+        font-weight: 600;
+        background: #f8fafc;
+      }
+
+      .gallery {
+        display: grid;
+        gap: 12px;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      }
+
+      .gallery img {
+        width: 100%;
+        border-radius: 16px;
+        border: 1px solid var(--border);
+        max-height: 220px;
+        object-fit: cover;
       }
 
       .video-frame {
@@ -302,16 +472,12 @@ export function exportProposalToHTML(proposal = {}) {
   <body>
     <main class="page">
       <section class="hero">
-        <p class="eyebrow">${safeBusinessType || "Proposal"}</p>
-        <h1>${safeProjectName}</h1>
+        <p class="eyebrow">${safeGuideType}</p>
+        <h1>${safeTitle}</h1>
         <div class="hero-copy">
-          <p>Prepared for ${safeClientName || "your client"}.</p>
+          <p>${safeSubtitle || "A structured instruction guide built for clarity and speed."}</p>
         </div>
-        ${
-          safeImageUrl
-            ? `<div class="hero-media"><img src="${safeImageUrl}" alt="${safeProjectName} preview" /></div>`
-            : ""
-        }
+        ${safeAudience ? `<div class="hero-meta">Audience: ${safeAudience}</div>` : ""}
       </section>
 
       <div class="grid">

@@ -14,10 +14,10 @@ export async function uploadProposalVideo({ file, userId, timestamp = Date.now()
   }
 
   if (!userId) {
-    throw new Error("You must be signed in to upload a proposal video.");
+    throw new Error("You must be signed in to upload a walkthrough video.");
   }
 
-  const safeFileName = sanitizeFileName(file.name || "proposal-demo.mp4") || "proposal-demo.mp4";
+  const safeFileName = sanitizeFileName(file.name || "walkthrough-video.mp4") || "walkthrough-video.mp4";
   const storagePath = `proposal-videos/${userId}/${timestamp}-${safeFileName}`;
   const storageRef = ref(storage, storagePath);
 

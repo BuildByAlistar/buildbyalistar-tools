@@ -65,7 +65,7 @@ function ToolCardHero({ tool, theme, onOpen }) {
 
       <div className="w-full max-w-sm rounded-2xl border border-white/10 bg-white/5 p-4 shadow-[0_24px_60px_rgba(15,23,42,0.35)]">
         <div className="flex items-center justify-between text-[10px] uppercase tracking-[0.2em] text-white/60">
-          <span>Proposal</span>
+          <span>{tool.name}</span>
           <span>Preview</span>
         </div>
         <div className="mt-4 h-3 w-3/4 rounded-full bg-white/25" />

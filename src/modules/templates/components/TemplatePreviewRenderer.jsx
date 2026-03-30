@@ -2,12 +2,14 @@ const typeBackgrounds = {
   proposal: "from-blue-500/20 via-sky-500/10 to-purple-500/20",
   invitation: "from-amber-400/20 via-rose-400/10 to-fuchsia-400/20",
   email: "from-slate-100/80 via-white/60 to-slate-100/80",
+  instruction: "from-cyan-500/20 via-sky-500/10 to-emerald-500/20",
 };
 
 const typeLabels = {
   proposal: "Proposal",
   invitation: "Invitation",
   email: "Email",
+  instruction: "Instruction",
 };
 
 export default function TemplatePreviewRenderer({ templateType, title, subtitle, isFeatured = false }) {
@@ -67,6 +69,27 @@ export default function TemplatePreviewRenderer({ templateType, title, subtitle,
             <div className="h-2 w-full rounded-full bg-slate-200" />
             <div className="h-2 w-5/6 rounded-full bg-slate-200" />
             <div className="h-2 w-2/3 rounded-full bg-slate-200" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (templateType === "instruction") {
+    return (
+      <div className={`relative overflow-hidden rounded-2xl bg-gradient-to-br ${background} ${previewHeight}`}>
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.28),transparent_55%)]" />
+        <div className="relative flex h-full flex-col gap-3 p-4">
+          <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/80">{label}</span>
+          <div className="mt-1 text-sm font-semibold text-white">{title || "Instruction Guide"}</div>
+          <div className="h-2 w-4/5 rounded-full bg-white/25" />
+          <div className="grid gap-2">
+            <div className="h-2 w-full rounded-full bg-white/20" />
+            <div className="h-2 w-3/4 rounded-full bg-white/15" />
+          </div>
+          <div className="mt-auto flex gap-2">
+            <div className="h-8 w-16 rounded-lg bg-white/25" />
+            <div className="h-8 w-20 rounded-lg bg-white/20" />
           </div>
         </div>
       </div>

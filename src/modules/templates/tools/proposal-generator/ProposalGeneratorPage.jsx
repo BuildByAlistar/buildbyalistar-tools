@@ -11,15 +11,21 @@ import TemplateActionBar from "./components/TemplateActionBar";
 import TemplateEditorPanel from "./components/TemplateEditorPanel";
 import TemplatePreviewPanel from "./components/TemplatePreviewPanel";
 import {
-  applyGeneratedProposalContent,
-  applyPrimaryImage,
+  addInstructionStep,
+  applyGeneratedInstructionContent,
+  applyInstructionImages,
+  applyInstructionPreset,
+  appendInstructionImages,
   applyVideoMedia,
   createInitialTemplateState,
   createTemplateMedia,
-  toLegacyProposalPayload,
+  normalizeInstructionTemplate,
+  removeInstructionStep,
+  toLegacyInstructionPayload,
   updateTemplateField,
   updateTemplateSectionContent,
   updateTemplateSectionEnabled,
+  updateInstructionStep,
 } from "./templateModel";
 
 const inputClassName =
@@ -35,14 +41,14 @@ const builderLayout = {
   previewCanvas: "max-w-[1360px]",
 };
 
-const createProposalDraftId = () =>
+const createInstructionDraftId = () =>
   typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
     ? crypto.randomUUID()
-    : `proposal-${Date.now()}`;
+    : `instruction-${Date.now()}`;
 
 const buildPersistedTemplatePayload = (template) => ({
   ...template,
-  ...toLegacyProposalPayload(template),
+  ...toLegacyInstructionPayload(template),
 });
 
 export default function ProposalGeneratorPage() {
@@ -53,7 +59,7 @@ export default function ProposalGeneratorPage() {
   const [isGeneratingAI, setIsGeneratingAI] = useState(false);
   const [isUploadingVideo, setIsUploadingVideo] = useState(false);
   const [videoUploadError, setVideoUploadError] = useState("");
-  const [proposalDraftId, setProposalDraftId] = useState(createProposalDraftId);
+  const [proposalDraftId, setProposalDraftId] = useState(createInstructionDraftId);
   const templateId = searchParams.get("templateId");
 
   useEffect(() => {
@@ -69,11 +75,15 @@ export default function ProposalGeneratorPage() {
         if (!isMounted) {
           return;
         }
-        if (!record || record.ownerId !== user.uid || record.templateType !== "proposal") {
+        if (
+          !record ||
+          record.ownerId !== user.uid ||
+          (record.templateType !== "instruction" && record.templateType !== "proposal")
+        ) {
           setStatusMessage("");
           return;
         }
-        setTemplate(record.data || createInitialTemplateState());
+        setTemplate(normalizeInstructionTemplate(record.data || createInitialTemplateState()));
         setProposalDraftId(record.id);
         setStatusMessage("Template loaded from library.");
         touchTemplateRecord(record.id);
@@ -105,10 +115,39 @@ export default function ProposalGeneratorPage() {
   };
 
   const handleImageUpload = (event) => {
+    const files = Array.from(event.target.files || []);
+
+    if (!files.length) {
+      setTemplate((current) => applyInstructionImages(current, []));
+      return;
+    }
+
+    Promise.all(
+      files.map(
+        (file) =>
+          new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onload = () => {
+              resolve(
+                createTemplateMedia({
+                  type: file.type || "image/*",
+                  url: typeof reader.result === "string" ? reader.result : "",
+                  name: file.name,
+                })
+              );
+            };
+            reader.readAsDataURL(file);
+          })
+      )
+    ).then((mediaList) => {
+      setTemplate((current) => appendInstructionImages(current, mediaList));
+    });
+  };
+
+  const handleStepImageUpload = (stepId) => (event) => {
     const [file] = event.target.files || [];
 
     if (!file) {
-      setTemplate((current) => applyPrimaryImage(current, null));
       return;
     }
 
@@ -120,7 +159,7 @@ export default function ProposalGeneratorPage() {
         name: file.name,
       });
 
-      setTemplate((current) => applyPrimaryImage(current, nextImage));
+      setTemplate((current) => updateInstructionStep(current, stepId, { image: nextImage }));
     };
     reader.readAsDataURL(file);
   };
@@ -136,7 +175,7 @@ export default function ProposalGeneratorPage() {
 
     if (!user) {
       setStatusMessage("");
-      setVideoUploadError("Sign in to upload a proposal demo video.");
+      setVideoUploadError("Sign in to upload a walkthrough video.");
       event.target.value = "";
       return;
     }
@@ -166,7 +205,7 @@ export default function ProposalGeneratorPage() {
       });
 
       setTemplate(nextTemplate);
-      setStatusMessage("Video uploaded and attached to your proposal.");
+      setStatusMessage("Video uploaded and attached to your guide.");
     } catch (error) {
       setStatusMessage("");
       setVideoUploadError(error.message || "Video upload failed.");
@@ -181,35 +220,36 @@ export default function ProposalGeneratorPage() {
 
   const handleGenerateWithAI = async () => {
     setIsGeneratingAI(true);
-    setStatusMessage("Generating proposal content...");
+    setStatusMessage("Generating instruction content...");
 
     try {
       const generatedContent = await generateProposalContent({
         projectName: template.title,
-        businessType: template.businessType,
-        clientName: template.clientName,
+        guideType: template.guideType,
+        audience: template.audience,
+        subtitle: template.subtitle,
       });
 
-      setTemplate((current) => applyGeneratedProposalContent(current, generatedContent));
-      setStatusMessage("AI content generated and added to your proposal.");
+      setTemplate((current) => applyGeneratedInstructionContent(current, generatedContent));
+      setStatusMessage("AI content generated and added to your instruction guide.");
     } finally {
       setIsGeneratingAI(false);
     }
   };
 
   const handleDownloadHtml = () => {
-    const exportPayload = toLegacyProposalPayload(template);
+    const exportPayload = toLegacyInstructionPayload(template);
     const html = exportProposalToHTML(exportPayload);
     const blob = new Blob([html], { type: "text/html;charset=utf-8" });
     const objectUrl = URL.createObjectURL(blob);
     const anchor = document.createElement("a");
-    const safeFileName = (template.title || "proposal")
+    const safeFileName = (template.title || "instruction")
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/^-+|-+$/g, "");
 
     anchor.href = objectUrl;
-    anchor.download = `${safeFileName || "proposal"}.html`;
+    anchor.download = `${safeFileName || "instruction"}.html`;
     document.body.appendChild(anchor);
     anchor.click();
     document.body.removeChild(anchor);
@@ -223,12 +263,12 @@ export default function ProposalGeneratorPage() {
         <div className="premium-panel p-7 sm:p-10">
           <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
             <div className="max-w-3xl">
-              <p className="premium-kicker">Templates / AI Proposal Generator</p>
+              <p className="premium-kicker">Templates / Instruction Builder</p>
               <h1 className="mt-4 text-4xl font-bold leading-tight tracking-[-0.05em] text-white sm:text-5xl">
-                Create polished client proposals in one workspace
+                Create polished instruction guides in one workspace
               </h1>
               <p className="mt-4 max-w-2xl text-[15px] leading-7 text-slate-300 sm:text-base sm:leading-8">
-                Draft proposal sections, preview the final output live, and export an HTML version for delivery.
+                Draft step-by-step instructions, preview the final output live, and export HTML for handover.
               </p>
             </div>
 
@@ -239,7 +279,7 @@ export default function ProposalGeneratorPage() {
           </div>
 
           <div className="mt-8 flex flex-wrap gap-2">
-            {["AI-assisted draft", "Live preview", "HTML export", "Reusable template engine"].map((item) => (
+            {["AI-assisted draft", "Live preview", "HTML export", "Reusable SOP engine"].map((item) => (
               <span
                 key={item}
                 className="rounded-full border border-cyan-400/20 bg-cyan-400/10 px-3 py-1 text-xs font-medium text-cyan-100"
@@ -252,9 +292,9 @@ export default function ProposalGeneratorPage() {
 
         <aside className="rounded-[32px] border border-cyan-400/15 bg-cyan-400/10 p-6 shadow-[0_18px_50px_rgba(34,211,238,0.08)]">
           <p className="text-xs uppercase tracking-[0.22em] text-cyan-100/75">Featured template tool</p>
-          <h2 className="mt-3 text-2xl font-semibold text-white">Proposal Studio</h2>
+          <h2 className="mt-3 text-2xl font-semibold text-white">Instruction Studio</h2>
           <p className="mt-3 text-sm leading-7 text-slate-200">
-            The working master template engine for structured proposal generation, media-rich delivery, and reusable future template types.
+            The master template engine for SOPs, training guides, and handover documentation with media-rich output.
           </p>
 
           <div className="mt-6 space-y-3">
@@ -264,7 +304,7 @@ export default function ProposalGeneratorPage() {
             </div>
             <div className="rounded-[24px] border border-white/10 bg-slate-950/30 px-4 py-4">
               <p className="text-xs uppercase tracking-[0.2em] text-slate-400">Output</p>
-              <p className="mt-2 text-sm font-medium text-white">Live preview, saved draft data, downloadable HTML</p>
+              <p className="mt-2 text-sm font-medium text-white">Live preview, saved draft data, exportable HTML</p>
             </div>
           </div>
         </aside>
@@ -280,6 +320,17 @@ export default function ProposalGeneratorPage() {
             onFieldChange={updateField}
             onSectionChange={updateSection}
             onSectionToggle={updateSectionToggle}
+            onPresetChange={(event) => {
+              const selectedPresetId = event.target.value;
+              setTemplate((current) => applyInstructionPreset(current, selectedPresetId));
+            }}
+            onStepChange={(stepId, field) => (event) => {
+              const { value } = event.target;
+              setTemplate((current) => updateInstructionStep(current, stepId, { [field]: value }));
+            }}
+            onStepAdd={() => setTemplate((current) => addInstructionStep(current))}
+            onStepRemove={(stepId) => setTemplate((current) => removeInstructionStep(current, stepId))}
+            onStepImageUpload={handleStepImageUpload}
             onImageUpload={handleImageUpload}
             onVideoUpload={handleVideoUpload}
           />

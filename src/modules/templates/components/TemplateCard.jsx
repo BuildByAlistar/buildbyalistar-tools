@@ -5,6 +5,7 @@ const badgeStyles = {
   proposal: "border-blue-400/30 bg-blue-400/10 text-blue-100",
   invitation: "border-rose-400/30 bg-rose-400/10 text-rose-100",
   email: "border-emerald-400/30 bg-emerald-400/10 text-emerald-100",
+  instruction: "border-cyan-400/30 bg-cyan-400/10 text-cyan-100",
 };
 
 export default function TemplateCard({

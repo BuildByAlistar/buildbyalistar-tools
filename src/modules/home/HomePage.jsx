@@ -27,7 +27,7 @@ export default function HomePage() {
               to="/templates/proposal-generator"
               className="premium-button-primary"
             >
-              Open AI Proposal Generator
+              Open Instruction Builder
               <ArrowRight size={16} />
             </Link>
             <Link to="/dashboard" className="premium-button-secondary">
@@ -73,7 +73,7 @@ export default function HomePage() {
 
           <div className="mt-5 rounded-[28px] border border-cyan-400/15 bg-cyan-400/10 p-5 shadow-[0_12px_40px_rgba(34,211,238,0.08)]">
             <p className="text-xs uppercase tracking-[0.24em] text-cyan-100/80">Featured launch path</p>
-            <p className="mt-3 text-lg font-semibold text-white">Templates and the AI Proposal Generator lead the current product story.</p>
+            <p className="mt-3 text-lg font-semibold text-white">Templates and the Instruction Builder lead the current product story.</p>
           </div>
         </aside>
       </section>

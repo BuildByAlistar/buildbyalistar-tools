@@ -1,6 +1,6 @@
 import TemplateMediaRenderer from "./TemplateMediaRenderer";
 import TemplateSectionRenderer from "./TemplateSectionRenderer";
-import { getPrimaryImage, getTemplateVideo } from "../templateModel";
+import { getPrimaryImage } from "../templateModel";
 
 const previewCanvasBaseClassName = "mx-auto w-full px-3 py-3 sm:px-5 sm:py-5 xl:px-6 xl:py-6";
 
@@ -9,7 +9,6 @@ export default function TemplatePreviewPanel({
   previewCanvasClassName = "max-w-[1360px]",
 }) {
   const primaryImage = getPrimaryImage(template);
-  const video = getTemplateVideo(template);
   const enabledSections = template.sections.filter((section) => section.enabled);
 
   return (
@@ -26,36 +25,32 @@ export default function TemplatePreviewPanel({
                 <span className="h-2.5 w-2.5 rounded-full bg-emerald-300" />
               </div>
               <div className="template-preview-browser-address">
-                LIVE TEMPLATE PREVIEW
+                LIVE INSTRUCTION PREVIEW
               </div>
             </div>
 
             <div className="template-preview-page">
               <header className="template-preview-hero">
-                <p className="template-preview-hero-kicker">{template.businessType || "Template"}</p>
-                <h2 className="template-preview-hero-title">{template.title || "Untitled Template"}</h2>
+                <p className="template-preview-hero-kicker">{template.guideType || "Instruction Guide"}</p>
+                <h2 className="template-preview-hero-title">{template.title || "Instruction Guide"}</h2>
                 <p className="template-preview-hero-copy">
-                  Prepared for {template.clientName || "your client"}.
+                  {template.subtitle || "A polished step-by-step guide for consistent execution."}
+                </p>
+                <p className="template-preview-hero-meta">
+                  For {template.audience || "your team"}
                 </p>
                 <TemplateMediaRenderer media={primaryImage} />
               </header>
 
               <main className="template-preview-main">
                 {enabledSections.map((section, index) => (
-                  <TemplateSectionRenderer key={section.id} section={section} isFirst={index === 0} />
+                  <TemplateSectionRenderer
+                    key={section.id}
+                    section={section}
+                    template={template}
+                    isFirst={index === 0}
+                  />
                 ))}
-
-                {video?.url ? (
-                  <section className="template-preview-section">
-                    <div className="max-w-4xl">
-                      <h3 className="template-preview-section-title">Walkthrough Video</h3>
-                      <p className="template-preview-section-copy">
-                        Share a richer project story with an embedded walkthrough that feels native to the page.
-                      </p>
-                    </div>
-                    <TemplateMediaRenderer media={video} variant="video" />
-                  </section>
-                ) : null}
               </main>
             </div>
           </div>

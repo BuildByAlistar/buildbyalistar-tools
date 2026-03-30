@@ -12,7 +12,7 @@ import {
 
 const templateTypeOptions = [
   { value: "all", label: "All" },
-  { value: "proposal", label: "Proposals" },
+  { value: "instruction", label: "Instructions" },
   { value: "invitation", label: "Invitations" },
   { value: "email", label: "Emails" },
 ];
@@ -89,17 +89,19 @@ export default function TemplateLibraryPage() {
     return templates.map((template) => {
       const updatedAt = template.updatedAt || template.createdAt || null;
       const updatedAtTime = updatedAt ? new Date(updatedAt).getTime() : 0;
+      const displayType = template.templateType === "proposal" ? "instruction" : template.templateType;
       return {
         ...template,
         updatedAtTime,
         updatedAtLabel: formatDate(updatedAt),
+        displayType,
       };
     });
   }, [templates]);
 
   const filteredTemplates = useMemo(() => {
     return normalizedTemplates.filter((template) => {
-      if (filterType !== "all" && template.templateType !== filterType) {
+      if (filterType !== "all" && template.displayType !== filterType) {
         return false;
       }
 
@@ -186,7 +188,7 @@ export default function TemplateLibraryPage() {
           Saved templates and drafts
         </h1>
         <p className="mt-4 max-w-2xl text-[15px] leading-7 text-slate-300 sm:text-base sm:leading-8">
-          Manage every saved proposal, invitation, and email from one visual library.
+          Manage every saved instruction, invitation, and email from one visual library.
         </p>
 
         <div className="mt-6 flex flex-wrap items-center gap-3">
@@ -275,7 +277,7 @@ export default function TemplateLibraryPage() {
             <div>
               <h3 className="text-lg font-semibold text-white">No templates yet</h3>
               <p className="mt-2 text-sm text-slate-300">
-                Create your first proposal, invitation, or email to build your library.
+                Create your first instruction, invitation, or email to build your library.
               </p>
             </div>
             <Link to="/templates" className="premium-button-primary inline-flex">
@@ -288,7 +290,7 @@ export default function TemplateLibraryPage() {
           sortedTemplates.map((template, index) => (
             <TemplateCard
               key={template.id}
-              template={template}
+              template={{ ...template, templateType: template.displayType }}
               isFeatured={index < 2}
               onOpen={() => handleOpen(template)}
               onDuplicate={() => handleDuplicate(template.id)}

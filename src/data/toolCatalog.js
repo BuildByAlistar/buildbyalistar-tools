@@ -13,14 +13,14 @@ export const toolCategories = [
     path: "/templates",
     eyebrow: "Reusable Systems",
     title: "Launch faster with reusable formats and structured builders.",
-    description: "Curated starting points for proposals, decks, landing pages, and internal delivery templates.",
-    collections: ["Sales templates", "Client delivery packs", "Brand-ready starters"],
+    description: "Curated starting points for SOPs, handover guides, invitations, and reusable delivery templates.",
+    collections: ["Instruction systems", "Client delivery packs", "Brand-ready starters"],
     featuredRoute: "/templates/proposal-generator",
-    featuredLabel: "Open AI Proposal Generator",
+    featuredLabel: "Open Instruction Builder",
     tools: [
       {
-        name: "AI Proposal Generator",
-        description: "Generate client-ready proposals with editable sections, live preview, and HTML export.",
+        name: "Instruction Builder",
+        description: "Build step-by-step SOPs, guides, and handovers with live preview and HTML export.",
         status: "Live",
         route: "/templates/proposal-generator",
         badge: "Featured",
@@ -160,7 +160,7 @@ export const homepageStats = [
 
 export const dashboardRecentTools = [
   {
-    name: "AI Proposal Generator",
+    name: "Instruction Builder",
     category: "Templates",
     lastUsed: "2 hours ago",
     route: "/templates/proposal-generator",
@@ -181,7 +181,7 @@ export const dashboardRecentTools = [
 
 export const dashboardSavedOutputs = [
   {
-    name: "Client Proposal Draft",
+    name: "Instruction Draft",
     meta: "HTML export",
     updatedAt: "Today",
   },
@@ -199,7 +199,7 @@ export const dashboardSavedOutputs = [
 
 export const dashboardQuickActions = [
   {
-    label: "Open proposal generator",
+    label: "Open instruction builder",
     route: "/templates/proposal-generator",
   },
   {
